@@ -14,6 +14,8 @@ from sklearn import metrics
 from sklearn.svm import LinearSVC
 from nltk.stem.snowball import SnowballStemmer
 from langdetect import DetectorFactory, detect
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
 DetectorFactory.seed = 0
 
 def plot_roc_curve(fpr, tpr, title, num, curve):
@@ -91,6 +93,7 @@ X = tfid.fit_transform(xtrain_1)
 
 kf = KFold(n_splits = 5)
 accuracy = []
+std = []
 C_range = [0.001, 0.01, 0.1, 1, 10, 100, 1000]
 for Ci in C_range:
     model = LinearSVC(C = Ci, max_iter = 1000000)
@@ -102,15 +105,16 @@ for Ci in C_range:
         y_pred = model.predict(X[test])
         temp.append(metrics.accuracy_score(y[test], y_pred))
     accuracy.append(np.array(temp).mean()) 
-plot5 = plt.figure(5)
+    std.append(np.array(temp).std())
+plot5 = plt.figure(2)
 plt.title('Accuracy vs C')
 plt.ylabel('Accuracy')
 plt.xlabel('C')
-plt.errorbar(C_range,accuracy)
+plt.errorbar(C_range,accuracy,std)
 plt.show()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
-model = LinearSVC(C=0.1, max_iter = 1000000)
+model = LinearSVC(C=10, max_iter = 1000000)
 model.fit(X_train, y_train)
 preds = model.predict(X_test)
 
@@ -119,3 +123,8 @@ print(classification_report(y_test, preds))
 print("Accuracy:",metrics.accuracy_score(y_test, preds))
 print("Precision:",metrics.precision_score(y_test, preds))
 print("Recall:",metrics.recall_score(y_test, preds))
+
+auc = roc_auc_score(y_test, model.decision_function(X_test))
+print('AUC: %.2f' % auc)
+fpr, tpr, _ = roc_curve(y_test, model.decision_function(X_test))
+plot_roc_curve(fpr, tpr, '(SVM)', 3, 'SVM')

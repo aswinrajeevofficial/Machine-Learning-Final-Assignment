@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import KFold
 from sklearn import metrics
 import json_lines
 from nltk.corpus import stopwords
@@ -91,35 +90,17 @@ final_stopwords = final_stopwords.union(stopwords_english, stopwords_romanian,
 tfid = TfidfVectorizer(stop_words=final_stopwords, max_df=0.2)
 X = tfid.fit_transform(xtrain_1)  
 
-kf = KFold(n_splits = 10)
-accuracy = []
-temp = []   
-std = []
-model = BernoulliNB()
-for train, test in kf.split(X):
-    model.fit(X[train], y[train])
-    preds = model.predict(X[test])
-    temp.append(metrics.accuracy_score(y[test], preds))
-    accuracy.append(np.array(temp).mean()) 
-    std.append(np.array(temp).std())
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
 model = BernoulliNB()
 model.fit(X_train, y_train)
 preds = model.predict(X_test)
-
-plt.figure(2)
-plt.errorbar(range(0,10),accuracy,std)
-plt.xlabel('Folds')
-plt.ylabel('Accuracy')
-plt.title('Folds vs Accuracy')
-plt.show()
 
 probs = model.predict_proba(X_test)
 probs = probs[:, 1]
 auc = roc_auc_score(y_test, probs)
 print('AUC: %.2f' % auc)
 fpr, tpr, thresholds = roc_curve(y_test, probs)
-plot_roc_curve(fpr, tpr, '(Naive Bayes)', 3, 'Naive Bayes')
+plot_roc_curve(fpr, tpr, '(Naive Bayes)', 2, 'Naive Bayes')
 
 cm = confusion_matrix(y_test, preds) 
 print(classification_report(y_test, preds))
@@ -138,7 +119,7 @@ probs = probs[:, 1]
 auc = roc_auc_score(y_test, probs)
 print('AUC: %.2f' % auc)
 fpr, tpr, thresholds = roc_curve(y_test, probs)
-plot_roc_curve(fpr, tpr, '(Baseline)', 4, 'Baseline')
+plot_roc_curve(fpr, tpr, '(Baseline)', 3, 'Baseline')
 cm_baseline = confusion_matrix(y_test, y_pred) 
 print(classification_report(y_test, y_pred))
 print("Accuracy Baseline:",metrics.accuracy_score(y_test, y_pred))

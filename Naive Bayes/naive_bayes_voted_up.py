@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import KFold
 from sklearn import metrics
 import json_lines
 from nltk.corpus import stopwords
 import nltk
+from nltk.stem.snowball import SnowballStemmer
 from langdetect import DetectorFactory, detect
 DetectorFactory.seed = 0
 
@@ -61,7 +61,6 @@ plt.show()
 
 tokenizer = TfidfVectorizer().build_tokenizer()
 xtrain_1=[]
-stemmer1 = PorterStemmer()
 lemmatizer = nltk.WordNetLemmatizer() 
 for i in range(len(corpus)):
     if(corpus[i][1] == "en"):
@@ -91,41 +90,23 @@ final_stopwords = final_stopwords.union(stopwords_english, stopwords_romanian,
 tfid = TfidfVectorizer(stop_words=final_stopwords, max_df=0.2)
 X = tfid.fit_transform(xtrain_1)    
 
-kf = KFold(n_splits = 10)
-accuracy = []
-temp = []   
-std = []
-model = BernoulliNB()
-for train, test in kf.split(X):
-    model.fit(X[train], y[train])
-    preds = model.predict(X[test])
-    temp.append(metrics.accuracy_score(y[test], preds))
-    accuracy.append(np.array(temp).mean()) 
-    std.append(np.array(temp).std())
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
 model = BernoulliNB()
 model.fit(X_train, y_train)
 preds = model.predict(X_test)
-
-plt.figure(2)
-plt.errorbar(range(0,10),accuracy,std)
-plt.xlabel('Folds')
-plt.ylabel('Accuracy')
-plt.title('Folds vs Accuracy')
-plt.show()
 
 probs = model.predict_proba(X_test)
 probs = probs[:, 1]
 auc = roc_auc_score(y_test, probs)
 print('AUC: %.2f' % auc)
 fpr, tpr, thresholds = roc_curve(y_test, probs)
-plot_roc_curve(fpr, tpr, '(Naive Bayes)', 1, 'Naive Bayes')
+plot_roc_curve(fpr, tpr, '(Naive Bayes)', 2, 'Naive Bayes')
 
 cm = confusion_matrix(y_test, preds) 
 print(classification_report(y_test, preds))
 print("Accuracy Naive Bayes:",metrics.accuracy_score(y_test, preds))
-print("Precision Naive Bayes:",metrics.precision_score(y_test, preds, zero_division = 0))
-print("Recall Naive Bayes:",metrics.recall_score(y_test, preds, zero_division = 0))
+print("Precision Naive Bayes:",metrics.precision_score(y_test, preds))
+print("Recall Naive Bayes:",metrics.recall_score(y_test, preds))
 
 from sklearn.dummy import DummyClassifier
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
@@ -138,7 +119,7 @@ probs = probs[:, 1]
 auc = roc_auc_score(y_test, probs)
 print('AUC: %.2f' % auc)
 fpr, tpr, thresholds = roc_curve(y_test, probs)
-plot_roc_curve(fpr, tpr, '(Baseline)', 2, 'Baseline')
+plot_roc_curve(fpr, tpr, '(Baseline)', 3, 'Baseline')
 cm_baseline = confusion_matrix(y_test, y_pred) 
 print(classification_report(y_test, y_pred))
 print("Accuracy Baseline:",metrics.accuracy_score(y_test, y_pred))

@@ -90,7 +90,7 @@ plt.title('C vs Accuracy')
 plt.show()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
-model = LogisticRegression(penalty = 'l2', C = 0.01, max_iter = 10000000)
+model = LogisticRegression(penalty = 'l2', C = 10, max_iter = 10000000)
 model.fit(X_train, y_train)
 preds = model.predict(X_test)
 
